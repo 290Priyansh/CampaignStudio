@@ -1,0 +1,34 @@
+services:
+  ai-creative-director:
+    build: .
+    container_name: ai-creative-director
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./outputs:/app/outputs
+      - ./.env:/app/.env:ro
+    environment:
+      # This container talks to Ollama running on the HOST machine, not
+      # inside Docker -- running Ollama itself in a second container adds
+      # complexity (a shared model cache volume, a second GPU-passthrough
+      # config) for no real benefit in a local/dev setup. See README.
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    extra_hosts:
+      # Makes host.docker.internal resolve on Linux too (Docker Desktop on
+      # Mac/Windows provides this automatically).
+      - "host.docker.internal:host-gateway"
+
+    # Uncomment to enable GPU-accelerated image generation. Requires the
+    # NVIDIA Container Toolkit installed on the host
+    # (https://github.com/NVIDIA/nvidia-container-toolkit). Without this,
+    # IMAGE_DEVICE=cuda inside the container will fail -- set
+    # IMAGE_DEVICE=cpu in .env if you don't have this set up (expect
+    # several minutes per SDXL image on CPU).
+    #
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
