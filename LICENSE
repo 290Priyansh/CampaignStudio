@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 [your name here]
+Copyright (c) 2026 Priyansh Vaish
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,19 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-NOTE: this license applies to the original source code in this repository.
-It does not apply to, and does not grant any rights over, third-party
-models, weights, or datasets referenced by this project (Ollama models,
-Stable Diffusion/SDXL weights, CLIP weights, etc.) -- each of those is
-covered by its own license. See THIRD_PARTY_NOTICES.md.
-
-This repository was built as a substantial rewrite/extension of
-github.com/Methila-Meem/Instagram_Content_Creation_Multi-Agent_CrewAI,
-which does not carry a LICENSE file (all-rights-reserved by default). No
-code from that repository was copied verbatim into this one -- its
-4-agent pipeline concept was reimplemented from scratch as part of this
-project's much larger architecture. See README.md's "What was inherited
-vs. newly built" section for the full breakdown.
