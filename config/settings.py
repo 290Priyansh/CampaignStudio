@@ -11,11 +11,26 @@ Copy `.env.example` to `.env` and adjust values as needed.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# CrewAI sends anonymous usage telemetry to telemetry.crewai.com by default,
+# which is a real external network call -- it contradicts this project's
+# "fully local" premise even though it's not a paid API. Disabled here,
+# before crewai is ever imported anywhere in the codebase (agents/* import
+# crewai lazily, well after this module has loaded). Override by setting
+# OTEL_SDK_DISABLED=false in your shell environment if you want it back on.
+
+
+def _disable_crewai_telemetry_by_default() -> None:
+    os.environ.setdefault("OTEL_SDK_DISABLED", "true")
+
+
+_disable_crewai_telemetry_by_default()
 
 
 class Settings(BaseSettings):
@@ -50,12 +65,12 @@ class Settings(BaseSettings):
     # ---------------------------------------------------------------
     # Image generation backend
     # ---------------------------------------------------------------
-    image_backend: Literal["diffusers", "comfyui"] = Field(default="diffusers")
+    image_backend: Literal["diffusers"] = Field(default="diffusers")
 
     # Diffusers backend
     image_model: str = Field(
         default="stabilityai/stable-diffusion-xl-base-1.0",
-        description="HF model id used when image_backend=diffusers.",
+        description="HF model id used for diffusion generation.",
     )
     image_device: Literal["cuda", "cpu", "mps"] = Field(
         default="cuda",
@@ -65,19 +80,12 @@ class Settings(BaseSettings):
         ),
     )
     image_dtype: Literal["float16", "float32", "bfloat16"] = Field(default="float16")
-    image_height: int = Field(default=1024, gt=0)
-    image_width: int = Field(default=1024, gt=0)
-    image_num_inference_steps: int = Field(default=30, gt=0)
+    image_height: int = Field(default=512, gt=0)
+    image_width: int = Field(default=512, gt=0)
+    image_num_inference_steps: int = Field(default=20, gt=0)
     image_guidance_scale: float = Field(default=7.5, gt=0)
     hf_token: str | None = Field(
         default=None, description="Optional Hugging Face token for gated models."
-    )
-
-    # ComfyUI backend
-    comfyui_url: str = Field(default="http://127.0.0.1:8188")
-    comfyui_workflow_path: str | None = Field(
-        default=None,
-        description="Path to a ComfyUI workflow JSON template, if using ComfyUI.",
     )
 
     # ---------------------------------------------------------------
@@ -88,11 +96,11 @@ class Settings(BaseSettings):
         description="Minimum overall_score an asset must reach to pass the quality gate.",
     )
     max_generation_attempts: int = Field(
-        default=3, ge=1,
+        default=2, ge=1,
         description="Hard cap on generate->evaluate->improve-prompt cycles per asset.",
     )
     candidates_per_asset: int = Field(
-        default=3, ge=1,
+        default=1, ge=1,
         description="Number of candidate images generated per attempt before ranking.",
     )
 

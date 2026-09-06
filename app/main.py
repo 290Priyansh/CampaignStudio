@@ -14,6 +14,12 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from pathlib import Path
+
+# Guards against `python app/main.py` (script mode) failing the same way
+# ui/streamlit_app.py did: only needed if NOT invoked as `python -m app.main`
+# from the project root, but harmless either way.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config import setup_logging
 from models.exceptions import CreativeDirectorError
@@ -23,7 +29,7 @@ logger = logging.getLogger("App")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the AI Creative Director end to end.")
+    parser = argparse.ArgumentParser(description="Run CampaignStudio end to end.")
     parser.add_argument("brief", help="The campaign brief text.")
     parser.add_argument("--assets", type=int, default=5, help="Number of assets to generate.")
     parser.add_argument("--output-dir", default=None, help="Override OUTPUT_DIR for this run.")

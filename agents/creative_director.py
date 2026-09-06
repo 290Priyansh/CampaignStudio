@@ -25,7 +25,7 @@ import logging
 from pathlib import Path
 
 from models.exceptions import CrewExecutionError
-from models.llm import get_crewai_llm
+from models.llm import execute_agent_task, get_crewai_llm
 from schemas import CreativeBrief
 
 logger = logging.getLogger("CreativeDirector")
@@ -34,7 +34,7 @@ _BACKSTORY_PATH = Path(__file__).resolve().parent.parent / "prompts" / "creative
 
 
 def _load_backstory() -> str:
-    return _BACKSTORY_PATH.read_text()
+    return _BACKSTORY_PATH.read_text(encoding="utf-8")
 
 
 def build_agent():
@@ -83,14 +83,6 @@ def create_brief(campaign_brief_text: str, number_of_assets: int = 5) -> Creativ
     logger.info("Creating campaign strategy from brief: %.80s...", campaign_brief_text)
     crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=False)
 
-    try:
-        crew.kickoff()
-    except Exception as exc:  # noqa: BLE001 - crew failures vary widely (Ollama down, timeout, etc.)
-        raise CrewExecutionError(f"Creative Director crew run failed: {exc}") from exc
+    prompt = task.description
+    return execute_agent_task("Creative Director", crew, task, CreativeBrief, prompt)
 
-    result = getattr(task.output, "pydantic", None)
-    if result is None:
-        raise CrewExecutionError(
-            "Creative Director agent did not return a valid structured CreativeBrief"
-        )
-    return result

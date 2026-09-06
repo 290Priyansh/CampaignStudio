@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 
 from models.exceptions import CrewExecutionError
-from models.llm import get_crewai_llm
+from models.llm import execute_agent_task, get_crewai_llm
 from schemas import CampaignPlan, CreativeBrief
 
 logger = logging.getLogger("CampaignStrategist")
@@ -23,7 +23,7 @@ _BACKSTORY_PATH = Path(__file__).resolve().parent.parent / "prompts" / "campaign
 
 
 def _load_backstory() -> str:
-    return _BACKSTORY_PATH.read_text()
+    return _BACKSTORY_PATH.read_text(encoding="utf-8")
 
 
 def build_agent():
@@ -56,6 +56,9 @@ def _build_task(agent, brief: CreativeBrief):
             f"Platform behavior: {ap.platform_behavior}\n"
         )
 
+    from schemas import AssetType
+
+    valid_types = ", ".join([f"'{e.value}'" for e in AssetType])
     return Task(
         description=(
             f"Campaign: {brief.campaign_name}\n"
@@ -66,6 +69,7 @@ def _build_task(agent, brief: CreativeBrief):
             f"Recommended aspect ratios: {', '.join(brief.recommended_aspect_ratios)}\n"
             f"{audience_context}\n"
             f"Plan exactly {brief.number_of_assets} assets for this campaign. "
+            f"CRITICAL: Each asset's 'asset_type' MUST be strictly one of: [{valid_types}]. "
             "For each one, specify its purpose, its message, its visual "
             "direction, its aspect ratio, and the concrete elements its "
             "image prompt must include. A prompt engineer will execute your "
@@ -83,18 +87,16 @@ def build_campaign_plan(brief: CreativeBrief) -> CampaignPlan:
 
     agent = build_agent()
     task = _build_task(agent, brief)
-
     logger.info("Building campaign plan for '%s' (%d assets)", brief.campaign_name, brief.number_of_assets)
     crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=False)
 
-    try:
-        crew.kickoff()
-    except Exception as exc:  # noqa: BLE001
-        raise CrewExecutionError(f"Campaign Strategist crew run failed: {exc}") from exc
-
-    result = getattr(task.output, "pydantic", None)
-    if result is None:
-        raise CrewExecutionError(
-            "Campaign Strategist agent did not return a valid structured CampaignPlan"
+    prompt = task.description
+    plan = execute_agent_task("Campaign Strategist", crew, task, CampaignPlan, prompt)
+    if len(plan.assets) > brief.number_of_assets:
+        logger.info(
+            "Campaign Strategist generated %d assets; truncating to requested %d",
+            len(plan.assets), brief.number_of_assets,
         )
-    return result
+        plan.assets = plan.assets[: brief.number_of_assets]
+    return plan
+

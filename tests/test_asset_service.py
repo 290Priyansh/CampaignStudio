@@ -89,10 +89,10 @@ def test_package_campaign_writes_valid_json_content(tmp_path):
     result = CampaignResult(brief=_brief(), plan=_plan(), assets=[_generated_asset(tmp_path)])
     campaign_dir = package_campaign(result, output_dir=tmp_path / "outputs")
 
-    brief_data = json.loads((campaign_dir / "campaign_brief.json").read_text())
+    brief_data = json.loads((campaign_dir / "campaign_brief.json").read_text(encoding="utf-8"))
     assert brief_data["campaign_name"] == "EcoStride Launch!"
 
-    eval_data = json.loads((campaign_dir / "evaluations" / "hero.json").read_text())
+    eval_data = json.loads((campaign_dir / "evaluations" / "hero.json").read_text(encoding="utf-8"))
     assert eval_data["overall_score"] == 0.92
     assert eval_data["passed"] is True
 
@@ -101,7 +101,7 @@ def test_package_campaign_prompt_file_contains_positive_and_negative(tmp_path):
     result = CampaignResult(brief=_brief(), plan=_plan(), assets=[_generated_asset(tmp_path)])
     campaign_dir = package_campaign(result, output_dir=tmp_path / "outputs")
 
-    prompt_text = (campaign_dir / "prompts" / "hero.txt").read_text()
+    prompt_text = (campaign_dir / "prompts" / "hero.txt").read_text(encoding="utf-8")
     assert "a running shoe on a forest trail, golden hour" in prompt_text
     assert "blurry" in prompt_text
 
@@ -121,7 +121,7 @@ def test_package_campaign_writes_copy_when_provided(tmp_path):
     campaign_dir = package_campaign(result, output_dir=tmp_path / "outputs", copy=copy)
 
     assert (campaign_dir / "campaign_copy.json").exists()
-    copy_data = json.loads((campaign_dir / "campaign_copy.json").read_text())
+    copy_data = json.loads((campaign_dir / "campaign_copy.json").read_text(encoding="utf-8"))
     assert copy_data["assets"][0]["headline"] == "Tread Light"
 
 

@@ -1,4 +1,6 @@
 # --- Core config / validation -----------------------------------------------
+setuptools>=69.0.0,<70.0.0   # crewai's telemetry module imports pkg_resources at runtime,
+                     # which was removed in setuptools>=70.0.0. Pinned to <70.0.0.
 pydantic==2.9.2
 pydantic-settings==2.6.1
 python-dotenv==1.0.1

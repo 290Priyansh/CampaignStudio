@@ -107,10 +107,22 @@ def test_campaign_plan_and_asset_plan():
                 visual_direction="dramatic side-lit product shot",
                 aspect_ratio="4:5",
                 prompt_requirements=["product in focus", "green/orange accents"],
-            )
+            ),
+            AssetPlan(
+                asset_id="lifestyle_01",
+                asset_type="lifestyle_image",  # String input normalized to AssetType enum
+                purpose="Showcase shoe in real life",
+                target_audience="College students",
+                message="Run green",
+                visual_direction="Bright park runner",
+                aspect_ratio="9:16",
+                prompt_requirements=["runner in park"],
+            ),
         ],
     )
     assert plan.assets[0].asset_type == AssetType.HERO_IMAGE
+    assert plan.assets[1].asset_type == AssetType.LIFESTYLE_IMAGE
+    assert isinstance(plan.assets[1].asset_type, AssetType)
 
 
 def test_image_prompt_revision_preserves_fields_and_annotates():

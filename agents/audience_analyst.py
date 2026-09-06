@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 
 from models.exceptions import CrewExecutionError
-from models.llm import get_crewai_llm
+from models.llm import execute_agent_task, get_crewai_llm
 from schemas import AudienceProfile, CreativeBrief
 
 logger = logging.getLogger("AudienceAnalyst")
@@ -22,7 +22,7 @@ _BACKSTORY_PATH = Path(__file__).resolve().parent.parent / "prompts" / "audience
 
 
 def _load_backstory() -> str:
-    return _BACKSTORY_PATH.read_text()
+    return _BACKSTORY_PATH.read_text(encoding="utf-8")
 
 
 def build_agent():
@@ -73,14 +73,6 @@ def analyze_audience(brief: CreativeBrief) -> AudienceProfile:
     logger.info("Analyzing target audience for campaign '%s'", brief.campaign_name)
     crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=False)
 
-    try:
-        crew.kickoff()
-    except Exception as exc:  # noqa: BLE001
-        raise CrewExecutionError(f"Audience Analyst crew run failed: {exc}") from exc
+    prompt = task.description
+    return execute_agent_task("Audience Analyst", crew, task, AudienceProfile, prompt)
 
-    result = getattr(task.output, "pydantic", None)
-    if result is None:
-        raise CrewExecutionError(
-            "Audience Analyst agent did not return a valid structured AudienceProfile"
-        )
-    return result

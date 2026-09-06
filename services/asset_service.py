@@ -35,7 +35,7 @@ logger = logging.getLogger("Workflow")
 
 def _write_json(path: Path, model: BaseModel) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(model.model_dump_json(indent=2))
+    path.write_text(model.model_dump_json(indent=2), encoding="utf-8")
 
 
 def _prompt_text(asset_prompt) -> str:
@@ -73,7 +73,7 @@ def package_campaign(
         except OSError as exc:
             logger.warning("Could not copy final image for asset '%s': %s", asset.asset_id, exc)
 
-        (prompts_dir / f"{asset.asset_id}.txt").write_text(_prompt_text(asset.prompt))
+        (prompts_dir / f"{asset.asset_id}.txt").write_text(_prompt_text(asset.prompt), encoding="utf-8")
         _write_json(evaluations_dir / f"{asset.asset_id}.json", asset.evaluation)
 
     if copy is not None:

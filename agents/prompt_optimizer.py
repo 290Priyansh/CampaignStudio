@@ -29,7 +29,7 @@ _TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "prompts" / "prompt_op
 
 
 def _load_template() -> str:
-    return _TEMPLATE_PATH.read_text()
+    return _TEMPLATE_PATH.read_text(encoding="utf-8")
 
 
 def _fill_template(brief: CreativeBrief, asset: AssetPlan, feedback_section: str) -> str:

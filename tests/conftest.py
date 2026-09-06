@@ -25,6 +25,10 @@ def fake_crewai(monkeypatch):
     class _FakeTaskOutput:
         def __init__(self, pydantic=None):
             self.pydantic = pydantic
+            if pydantic is not None and hasattr(pydantic, "model_dump_json"):
+                self.raw = pydantic.model_dump_json()
+            else:
+                self.raw = str(pydantic) if pydantic is not None else ""
 
     class _FakeAgent:
         def __init__(self, **kwargs):
@@ -33,6 +37,7 @@ def fake_crewai(monkeypatch):
     class _FakeTask:
         def __init__(self, **kwargs):
             self.kwargs = kwargs
+            self.description = kwargs.get("description", "")
             self.output = _FakeTaskOutput(pydantic=None)
 
     class _FakeCrew:

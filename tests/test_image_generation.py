@@ -17,7 +17,6 @@ import pytest
 from config.settings import Settings
 from models.exceptions import ImageBackendUnavailableError, ImageGenerationError
 from tools.image_generation import (
-    ComfyUIGenerator,
     DiffusersGenerator,
     get_image_generator,
 )
@@ -85,22 +84,6 @@ def test_get_image_generator_returns_diffusers_by_default(monkeypatch):
     monkeypatch.setattr("tools.image_generation.settings", Settings(_env_file=None, image_backend="diffusers"))
     gen = get_image_generator()
     assert isinstance(gen, DiffusersGenerator)
-
-
-def test_get_image_generator_returns_comfyui_when_configured(monkeypatch):
-    fake_settings = Settings(
-        _env_file=None, image_backend="comfyui", comfyui_workflow_path="/tmp/fake_workflow.json"
-    )
-    monkeypatch.setattr("tools.image_generation.settings", fake_settings)
-    gen = get_image_generator()
-    assert isinstance(gen, ComfyUIGenerator)
-
-
-def test_comfyui_generator_requires_workflow_path(monkeypatch):
-    fake_settings = Settings(_env_file=None, image_backend="comfyui", comfyui_workflow_path=None)
-    monkeypatch.setattr("tools.image_generation.settings", fake_settings)
-    with pytest.raises(ImageBackendUnavailableError):
-        ComfyUIGenerator()
 
 
 def test_diffusers_generator_raises_typed_error_when_deps_missing(monkeypatch):

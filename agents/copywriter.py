@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 
 from models.exceptions import CrewExecutionError
-from models.llm import get_crewai_llm
+from models.llm import execute_agent_task, get_crewai_llm
 from schemas import AssetPlan, CampaignCopy, CreativeBrief, GeneratedAsset
 
 logger = logging.getLogger("Copywriter")
@@ -23,7 +23,7 @@ _BACKSTORY_PATH = Path(__file__).resolve().parent.parent / "prompts" / "copywrit
 
 
 def _load_backstory() -> str:
-    return _BACKSTORY_PATH.read_text()
+    return _BACKSTORY_PATH.read_text(encoding="utf-8")
 
 
 def build_agent():
@@ -98,14 +98,6 @@ def write_campaign_copy(
     logger.info("Writing campaign copy for '%s' (%d assets)", brief.campaign_name, len(generated_assets))
     crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=False)
 
-    try:
-        crew.kickoff()
-    except Exception as exc:  # noqa: BLE001
-        raise CrewExecutionError(f"Copywriter crew run failed: {exc}") from exc
+    prompt = task.description
+    return execute_agent_task("Copywriter", crew, task, CampaignCopy, prompt)
 
-    result = getattr(task.output, "pydantic", None)
-    if result is None:
-        raise CrewExecutionError(
-            "Copywriter agent did not return a valid structured CampaignCopy"
-        )
-    return result

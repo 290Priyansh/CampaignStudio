@@ -104,7 +104,18 @@ class DiffusersGenerator(ImageGenerator):
                 torch_dtype=dtype,
                 use_auth_token=settings.hf_token,
             )
-            pipe = pipe.to(self.device)
+            if self.device == "cuda":
+                try:
+                    pipe.enable_model_cpu_offload()
+                except Exception:
+                    pipe = pipe.to(self.device)
+                try:
+                    pipe.enable_attention_slicing()
+                    pipe.enable_vae_slicing()
+                except Exception:
+                    pass
+            else:
+                pipe = pipe.to(self.device)
         except Exception as exc:  # model download/OOM/incompatible-device errors
             raise ImageGenerationError(
                 f"Failed to load diffusion pipeline '{self.model_id}' on "
@@ -128,11 +139,19 @@ class DiffusersGenerator(ImageGenerator):
         pipe = self._load_pipeline()  # validates torch/diffusers are importable first
         import torch  # safe now that _load_pipeline() above succeeded
 
-        width = width or settings.image_width
-        height = height or settings.image_height
-        steps = kwargs.get("num_inference_steps", settings.image_num_inference_steps)
-        guidance = kwargs.get("guidance_scale", settings.image_guidance_scale)
-        seed = seed if seed is not None else int(time.time())
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+
+        width = int(width or settings.image_width or 512)
+        height = int(height or settings.image_height or 512)
+        
+        steps_val = kwargs.get("num_inference_steps")
+        steps = int(steps_val if steps_val is not None else (settings.image_num_inference_steps or 20))
+        
+        guidance_val = kwargs.get("guidance_scale")
+        guidance = float(guidance_val if guidance_val is not None else (settings.image_guidance_scale or 7.5))
+        
+        seed = int(seed) if seed is not None else int(time.time())
 
         generator = torch.Generator(self.device).manual_seed(seed)
 
@@ -149,6 +168,9 @@ class DiffusersGenerator(ImageGenerator):
             )
         except Exception as exc:
             raise ImageGenerationError(f"Diffusion generation failed: {exc}") from exc
+        finally:
+            if self.device == "cuda":
+                torch.cuda.empty_cache()
 
         image = result.images[0]
         out_path = Path(output_path) if output_path else Path(settings.output_dir) / f"{uuid.uuid4().hex}.png"
@@ -158,91 +180,6 @@ class DiffusersGenerator(ImageGenerator):
         return GeneratedImageFile(file_path=str(out_path), seed=seed, width=width, height=height)
 
 
-class ComfyUIGenerator(ImageGenerator):
-    """Minimal ComfyUI HTTP client.
-
-    Honest scope: this submits a prompt into an exported ComfyUI workflow
-    (API-format JSON) by injecting text into any `CLIPTextEncode` node, and
-    posts it to `/prompt`. It does NOT implement result polling via the
-    `/history` endpoint, because that depends on the specific `SaveImage`
-    node name/output path in *your* exported workflow -- a generic
-    implementation would be either fragile or would need to reimplement a
-    chunk of ComfyUI's own client. `generate()` raises NotImplementedError
-    at that point with instructions, rather than silently returning a fake
-    success. Diffusers is the supported default; treat this as a documented
-    extension point, not a finished backend.
-    """
-
-    def __init__(self, base_url: str | None = None, workflow_path: str | None = None):
-        self.base_url = base_url or settings.comfyui_url
-        self.workflow_path = workflow_path or settings.comfyui_workflow_path
-        if not self.workflow_path:
-            raise ImageBackendUnavailableError(
-                "COMFYUI_WORKFLOW_PATH is not set. Export a ComfyUI workflow as "
-                "API-format JSON (Workflow > Export (API Format)) and point "
-                "this setting at the resulting file."
-            )
-
-    def _check_server(self) -> None:
-        import requests
-
-        try:
-            resp = requests.get(f"{self.base_url}/system_stats", timeout=5)
-            resp.raise_for_status()
-        except requests.exceptions.RequestException as exc:
-            raise ImageBackendUnavailableError(
-                f"ComfyUI server unreachable at {self.base_url}: {exc}"
-            ) from exc
-
-    def generate(
-        self,
-        prompt: str,
-        negative_prompt: str | None = None,
-        *,
-        width: int | None = None,
-        height: int | None = None,
-        seed: int | None = None,
-        output_path: str | Path | None = None,
-        **kwargs,
-    ) -> GeneratedImageFile:
-        import json
-
-        import requests
-
-        self._check_server()
-
-        workflow_template_path = Path(self.workflow_path)
-        if not workflow_template_path.exists():
-            raise ImageBackendUnavailableError(
-                f"ComfyUI workflow file not found: {self.workflow_path}"
-            )
-
-        workflow = json.loads(workflow_template_path.read_text())
-        for node in workflow.values():
-            if node.get("class_type") == "CLIPTextEncode":
-                title = str(node.get("_meta", {}).get("title", "")).lower()
-                node.setdefault("inputs", {})
-                node["inputs"]["text"] = (negative_prompt or "") if "negative" in title else prompt
-
-        try:
-            resp = requests.post(f"{self.base_url}/prompt", json={"prompt": workflow}, timeout=10)
-            resp.raise_for_status()
-        except requests.exceptions.RequestException as exc:
-            raise ImageGenerationError(f"Failed to submit workflow to ComfyUI: {exc}") from exc
-
-        raise NotImplementedError(
-            "ComfyUI workflow submitted successfully (job queued), but result "
-            "polling is workflow-specific and not implemented generically. "
-            "Add a SaveImage-node-aware polling loop for your exported "
-            "workflow, or use IMAGE_BACKEND=diffusers (the supported default)."
-        )
-
-
 def get_image_generator() -> ImageGenerator:
-    """Factory reading `settings.image_backend`. The only place in the
-    codebase that should branch on backend choice."""
-    if settings.image_backend == "diffusers":
-        return DiffusersGenerator()
-    if settings.image_backend == "comfyui":
-        return ComfyUIGenerator()
-    raise ImageBackendUnavailableError(f"Unknown IMAGE_BACKEND: {settings.image_backend}")
+    """Factory returning the Diffusers image generator instance."""
+    return DiffusersGenerator()
