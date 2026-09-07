@@ -2,6 +2,8 @@
 
 A local-first, multi-agent generative AI studio that transforms a high-level campaign brief into a production-ready marketing campaign: creative strategy, audience profiling, multi-format asset planning, prompt optimization, local diffusion image generation, automated CLIP quality evaluation with closed-loop self-correction, and grounded social copywriting — all running 100% locally on your machine with **zero paid APIs**.
 
+> 🎥 **Live Demo Video:** [Watch Video Demo on Google Drive](https://drive.google.com/file/d/1mzVtKK5ePbez-7ywUMTfAzjjpN34ZXfE/view?usp=sharing)
+
 ```text
 "Launch a marketing campaign for an eco-friendly running shoe targeted at college students."
                                        │
@@ -16,6 +18,7 @@ A local-first, multi-agent generative AI studio that transforms a high-level cam
 
 - [Project Overview](#project-overview)
 - [Architecture & Agent Workflow](#architecture--agent-workflow)
+- [Asset Allocation & Selection Logic](#asset-allocation--selection-logic)
 - [Tech Stack & Local AI Infrastructure](#tech-stack--local-ai-infrastructure)
 - [No Paid APIs & Privacy Guardrails](#no-paid-apis--privacy-guardrails)
 - [Dashboard & Demo UI Overview](#dashboard--demo-ui-overview)
@@ -106,6 +109,29 @@ Producing digital ad campaigns traditionally requires either paying per-generati
                   ├── images/                ├── campaign_copy.json
                   └── evaluations/           └── README.md
 ```
+
+---
+
+## 🎯 Asset Allocation & Selection Logic
+
+Users do not need to manually select image types for their campaign. Instead, you specify the desired **Number of Assets** (1 to 8, defaulting to 3) via the Streamlit UI slider, and the **Campaign Strategist Agent** ([agents/campaign_strategist.py](file:///d:/ai-creative-director/agents/campaign_strategist.py)) autonomously selects the optimal asset types, aspect ratios, and visual messaging based on campaign goals.
+
+### Supported Asset Types
+
+| Asset Type Enum | Placement Category | Aspect Ratio | Strategic Role |
+| :--- | :--- | :--- | :--- |
+| `hero_image` | **Hero Ad** | 4:5 or 1:1 | High-impact primary anchor visual for campaign launches |
+| `product_image` | **Product Shot** | 1:1 or 4:5 | Focused product showcase highlighting detail and features |
+| `lifestyle_image` | **Lifestyle Shot** | 4:5 or 1:1 | Product depicted in a real-world, relatable consumer setting |
+| `instagram_story` | **Instagram Story** | 9:16 | Vertical full-screen mobile format for Stories & Reels |
+| `promotional_poster` | **Promotional Poster** | 4:5 | Banner or poster graphic focused on key announcements |
+
+### Asset Breakdown by Quantity (`number_of_assets`)
+
+- **1 Asset**: Generates **1 Hero Ad** (`hero_image`) to serve as the core visual anchor of the campaign.
+- **2 Assets**: Combines the primary **Hero Ad** (`hero_image`) with a strategic secondary asset — typically a **Lifestyle Shot** (`lifestyle_image`) for contextual engagement, a **Product Shot** (`product_image`), or an **Instagram Story** (`instagram_story`, 9:16) for vertical mobile placement.
+- **3 Assets (Default)**: Generates a multi-channel campaign mix: **Hero Ad** + **Lifestyle/Product Shot** + **Instagram Story**.
+- **5+ Assets**: Generates a full multi-format suite spanning feed ads, product showcases, lifestyle context, promo banners, and vertical mobile stories.
 
 ---
 
