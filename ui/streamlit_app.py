@@ -70,6 +70,14 @@ def inject_custom_css() -> None:
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
+        /* Hide Streamlit Deploy button & header deploy options */
+        .stAppDeployButton,
+        [data-testid="stAppDeployButton"],
+        header [data-testid="stAppDeployButton"],
+        button[title="Deploy"] {
+            display: none !important;
+        }
+
         /* Remove dark blue bulky AI container boxes */
         div[data-testid="stNotification"] {
             background-color: transparent !important;
