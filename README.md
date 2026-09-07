@@ -303,12 +303,3 @@ docker compose up --build
 ## 📄 Licensing
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details. Third-party dependency licenses and model weight terms are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
----
-
-## 💼 Resume Positioning
-
-**CampaignStudio — Autonomous Multi-Agent Creative & Media Studio**
-- Architected a 100% local multi-agent generative AI system (CrewAI + LangChain over Ollama) that converts natural-language briefs into structured brand positioning, target audience profiles, multi-format ad plans, diffusion prompts, and social media copy.
-- Developed an automated visual quality gate combining OpenCLIP semantic embedding similarity (`ViT-B-32`) and technical image checks into a closed-loop generate $\rightarrow$ evaluate $\rightarrow$ revise $\rightarrow$ retry optimization workflow.
-- Built a modular Python architecture using Pydantic v2 data contracts across agent boundaries, an executive Streamlit dashboard with interactive demo views, a CLI entry point, and an 85+ test suite running in CI environments without GPU dependencies.
