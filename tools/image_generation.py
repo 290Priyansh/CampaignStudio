@@ -21,6 +21,7 @@ can be imported and unit-tested without a GPU or those packages installed.
 from __future__ import annotations
 
 import logging
+import random
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -151,7 +152,7 @@ class DiffusersGenerator(ImageGenerator):
         guidance_val = kwargs.get("guidance_scale")
         guidance = float(guidance_val if guidance_val is not None else (settings.image_guidance_scale or 7.5))
         
-        seed = int(seed) if seed is not None else int(time.time())
+        seed = int(seed) if seed is not None else random.randint(0, 2147483647)
 
         generator = torch.Generator(self.device).manual_seed(seed)
 

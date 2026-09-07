@@ -84,5 +84,7 @@ def create_brief(campaign_brief_text: str, number_of_assets: int = 5) -> Creativ
     crew = Crew(agents=[agent], tasks=[task], process=Process.sequential, verbose=False)
 
     prompt = task.description
-    return execute_agent_task("Creative Director", crew, task, CreativeBrief, prompt)
+    brief = execute_agent_task("Creative Director", crew, task, CreativeBrief, prompt)
+    brief.number_of_assets = number_of_assets
+    return brief
 
