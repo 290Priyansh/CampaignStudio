@@ -84,9 +84,6 @@ class Settings(BaseSettings):
     image_width: int = Field(default=512, gt=0)
     image_num_inference_steps: int = Field(default=20, gt=0)
     image_guidance_scale: float = Field(default=7.5, gt=0)
-    hf_token: str | None = Field(
-        default=None, description="Optional Hugging Face token for gated models."
-    )
 
     # ---------------------------------------------------------------
     # Generation / evaluation loop
@@ -103,29 +100,6 @@ class Settings(BaseSettings):
         default=1, ge=1,
         description="Number of candidate images generated per attempt before ranking.",
     )
-
-    # ---------------------------------------------------------------
-    # Orchestration
-    # ---------------------------------------------------------------
-    orchestration_framework: Literal["crewai", "langgraph"] = Field(
-        default="crewai",
-        description=(
-            "Which framework drives the top-level workflow state machine. "
-            "LangChain building blocks (structured output, tools, prompt "
-            "templates) are used regardless of this setting -- see README "
-            "'Tech Stack' section for the division of responsibilities."
-        ),
-    )
-
-    # ---------------------------------------------------------------
-    # RAG (optional brand knowledge base)
-    # ---------------------------------------------------------------
-    rag_enabled: bool = Field(default=False)
-    rag_embedding_model: str = Field(
-        default="nomic-embed-text",
-        description="Ollama embedding model tag, used only if rag_enabled=True.",
-    )
-    rag_vector_store_path: str = Field(default="outputs/.brand_kb")
 
     # ---------------------------------------------------------------
     # Output / paths

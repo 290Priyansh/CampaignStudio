@@ -23,7 +23,7 @@ from schemas import (
 def test_settings_defaults_are_zero_cost_and_local():
     s = Settings(_env_file=None)  # ignore any local .env during tests
     assert s.ollama_base_url.startswith("http://localhost")
-    assert s.image_backend in ("diffusers", "comfyui")
+    assert s.image_backend == "diffusers"
     assert s.max_generation_attempts >= 1
     assert 0.0 <= s.quality_threshold <= 1.0
     # No field on Settings should reference a paid API key.

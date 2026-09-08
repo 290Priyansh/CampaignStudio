@@ -103,7 +103,6 @@ class DiffusersGenerator(ImageGenerator):
             pipe = AutoPipelineForText2Image.from_pretrained(
                 self.model_id,
                 torch_dtype=dtype,
-                use_auth_token=settings.hf_token,
             )
             if self.device == "cuda":
                 try:

@@ -10,7 +10,6 @@ crewai==0.83.0
 langchain==0.3.7
 langchain-ollama==0.2.0
 langchain-core==0.3.15
-langgraph==0.2.45          # used if ORCHESTRATION_FRAMEWORK=langgraph
 ollama==0.3.3
 
 # --- Image generation (local/open-source only) --------------------------------
@@ -24,9 +23,6 @@ pillow==11.0.0
 
 # --- Evaluation ----------------------------------------------------------------
 open-clip-torch==2.29.0    # local CLIP for semantic (image<->prompt) scoring
-
-# --- RAG (optional, only used if RAG_ENABLED=true) ------------------------------
-chromadb==0.5.18
 
 # --- UI --------------------------------------------------------------------------
 streamlit==1.40.1
