@@ -30,7 +30,6 @@ A local-first, multi-agent generative AI studio that transforms a high-level cam
 - [Testing & Quality Assurance](#testing--quality-assurance)
 - [Docker Deployment](#docker-deployment)
 - [Licensing](#licensing)
-- [Resume Positioning](#resume-positioning)
 
 ---
 
@@ -302,4 +301,4 @@ docker compose up --build
 
 ## 📄 Licensing
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details. Third-party dependency licenses and model weight terms are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
